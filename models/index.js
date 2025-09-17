@@ -1,17 +1,35 @@
 'use strict';
 
+require('dotenv').config({ path: '../.env' });
+
 const fs = require('fs');
 const path = require('path');
-const Sequelize = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const config = require(__dirname + '/../config/config.js')[process.env.NODE_ENV || 'development'];
 const db = {};
+
+console.log('DB_USER:', process.env.DB_USERNAME);
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const { VehicleType, Vehicle, Booking } = require('../models');
+
+const sequelize = config.use_env_variable
+  ? new Sequelize(process.env[config.use_env_variable], config)
+  : new Sequelize(config.database, config.username, config.password, config);
+
+const VehicleType = require('../models/vehicletype')(sequelize, Sequelize.DataTypes);
+const Vehicle = require('../models/vehicle')(sequelize, Sequelize.DataTypes);
+const Booking = require('../models/booking')(sequelize, Sequelize.DataTypes);
+
+const models = { VehicleType, Vehicle, Booking };
+
+Object.values(models).forEach(model => {
+  if (model.associate) model.associate(models);
+});
 
 const app = express();
 app.use(bodyParser.json());
@@ -21,7 +39,13 @@ const PORT = process.env.PORT || 3000;
 app.get('/', (req, res) => res.send('API is running.'));
 
 app.get('/api/vehicle-types', async (req, res) => {
-
+  try {
+    const types = await VehicleType.findAll();
+    res.json(types);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch vehicle types' });
+  }
 });
 
 app.get('/api/vehicles', async (req, res) => {
@@ -30,23 +54,13 @@ app.get('/api/vehicles', async (req, res) => {
 
 app.get('/api/bookings/', async (req, res) => {
 
-})
-
-app.listen(PORT, async () => {
-  console.log(`Server is running on port ${PORT}`);
-  try {
-    await sequelize.authenticate();
-    console.log('Connection has been established successfully through frontend.');
-  }
-  catch (error) {
-    console.log('Unable to connect to the database:', error);
-  }
 });
 
-
-const sequelize = config.use_env_variable
-  ? new Sequelize(process.env[config.use_env_variable], config)
-  : new Sequelize(config.database, config.username, config.password, config);
+app.listen(PORT, async () => {
+  sequelize.authenticate()
+    .then(() => console.log('Database connected!'))
+    .catch(err => console.error('DB connection error:', err));
+});
 
 fs
   .readdirSync(__dirname)
@@ -72,7 +86,7 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = db;
+module.exports = { db, ...models };
 
 
 

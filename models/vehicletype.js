@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'VehicleType',
+    tableName: 'VehicleTypes',
   });
 
   VehicleType.associate = function (models) {
