@@ -56,11 +56,16 @@ app.get('/api/bookings/', async (req, res) => {
 
 });
 
-app.listen(PORT, async () => {
-  sequelize.authenticate()
+model.exports = app;
+
+if (require.main === module){
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT,()=> console.log(`Server running on port ${PORT}`));
+}
+
+sequelize.authenticate()
     .then(() => console.log('Database connected!'))
     .catch(err => console.error('DB connection error:', err));
-});
 
 (async () => {
   try {
