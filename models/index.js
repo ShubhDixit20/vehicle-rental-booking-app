@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config({ path: './.env' });
 
 const fs = require('fs');
 const path = require('path');
@@ -22,15 +22,27 @@ let sequelize;
 if (!global._sequelize) {
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
+    protocol: 'postgres',
     dialectOptions: {
-      ssl: { require: true, rejectUnauthorized: false }
+      ssl: {
+        require: true,
+        rejectUnauthorized: false, // VERY IMPORTANT for Supabase
+      },
     },
-    pool: { max: 1, min: 0, idle: 10000 } // serverless safe
+    logging: false,
+    pool: {
+      max: 1, // serverless-safe
+      min: 0,
+      idle: 10000,
+    },
+    define: {
+      freezeTableName: true, // keep table names as-is
+    },
   });
 
-  global._sequelize = sequelize; // store it globally for reuse
+  global._sequelize = sequelize;
 } else {
-  sequelize = global._sequelize; // reuse existing connection
+  sequelize = global._sequelize;
 }
 
 const VehicleType = require('../models/vehicletype')(sequelize, Sequelize.DataTypes);
