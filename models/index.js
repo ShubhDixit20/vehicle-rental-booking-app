@@ -20,11 +20,9 @@ const bodyParser = require('body-parser');
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
   dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false
-    }
-  }
+    ssl: { require: true, rejectUnauthorized: false }
+  },
+  pool: { max: 1, min: 0, idle: 10000 } // serverless-safe
 });
 
 const VehicleType = require('../models/vehicletype')(sequelize, Sequelize.DataTypes);
