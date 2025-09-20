@@ -17,9 +17,15 @@ console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const sequelize = config.use_env_variable
-  ? new Sequelize(process.env[config.use_env_variable], config)
-  : new Sequelize(config.database, config.username, config.password, config);
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
+    }
+  }
+});
 
 const VehicleType = require('../models/vehicletype')(sequelize, Sequelize.DataTypes);
 const Vehicle = require('../models/vehicle')(sequelize, Sequelize.DataTypes);
@@ -31,47 +37,31 @@ Object.values(models).forEach(model => {
   if (model.associate) model.associate(models);
 });
 
-const app = express();
-app.use(bodyParser.json());
+// app.get('/', (req, res) => res.send('API is running.'));
 
-const PORT = process.env.PORT || 3000;
+// app.get('/api/vehicle-types', async (req, res) => {
+//   try {
+//     const types = await VehicleType.findAll();
+//     res.json(types);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: 'Failed to fetch vehicle types' });
+//   }
+// });
 
-app.get('/', (req, res) => res.send('API is running.'));
+// app.get('/api/vehicles', async (req, res) => {
 
-app.get('/api/vehicle-types', async (req, res) => {
-  try {
-    const types = await VehicleType.findAll();
-    res.json(types);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch vehicle types' });
-  }
-});
+// });
 
-app.get('/api/vehicles', async (req, res) => {
+// app.get('/api/bookings/', async (req, res) => {
 
-});
+// });
 
-app.get('/api/bookings/', async (req, res) => {
-
-});
-
-model.exports = app;
-
-if (require.main === module){
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT,()=> console.log(`Server running on port ${PORT}`));
-}
-
-sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: "postgres",
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false
-    }
-  }
-});
+// app.listen(PORT, async () => {
+//   sequelize.authenticate()
+//     .then(() => console.log('Database connected!'))
+//     .catch(err => console.error('DB connection error:', err));
+// });
 
 (async () => {
   try {
@@ -79,7 +69,7 @@ sequelize = new Sequelize(process.env.DATABASE_URL, {
     await sequelize.sync({ alter: true }); // or { force: true } to drop & recreate
     console.log('Tables synced');
 
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   } catch (err) {
     console.error('DB error:', err);
   }
