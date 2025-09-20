@@ -1,19 +1,10 @@
 const express = require('express');
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('../models/index');
 require('dotenv').config({ path: './.env' });
 console.log('DATABASE_URL:', process.env.DATABASE_URL); // Debug: check if URL is loaded
 
 const app = express();
 app.use(express.json());
-
-// Initialize Sequelize
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: "postgres",
-  dialectOptions: {
-    ssl: { require: true, rejectUnauthorized: false }
-  },
-  pool: { max: 1, min: 0, idle: 10000 } // serverless-safe
-});
 
 // Define model
 const VehicleType = sequelize.define('VehicleType', {

@@ -17,13 +17,21 @@ console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: "postgres",
-  dialectOptions: {
-    ssl: { require: true, rejectUnauthorized: false }
-  },
-  pool: { max: 1, min: 0, idle: 10000 } // serverless-safe
-});
+let sequelize;
+
+if (!global._sequelize) {
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: { require: true, rejectUnauthorized: false }
+    },
+    pool: { max: 1, min: 0, idle: 10000 } // serverless safe
+  });
+
+  global._sequelize = sequelize; // store it globally for reuse
+} else {
+  sequelize = global._sequelize; // reuse existing connection
+}
 
 const VehicleType = require('../models/vehicletype')(sequelize, Sequelize.DataTypes);
 const Vehicle = require('../models/vehicle')(sequelize, Sequelize.DataTypes);
