@@ -57,19 +57,11 @@ Object.values(models).forEach(model => {
 
 // });
 
-// app.listen(PORT, async () => {
-//   sequelize.authenticate()
-//     .then(() => console.log('Database connected!'))
-//     .catch(err => console.error('DB connection error:', err));
-// });
-
 (async () => {
   try {
     // Create tables if they don't exist
     await sequelize.sync({ alter: true }); // or { force: true } to drop & recreate
     console.log('Tables synced');
-
-    // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   } catch (err) {
     console.error('DB error:', err);
   }
