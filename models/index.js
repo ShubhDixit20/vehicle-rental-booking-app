@@ -63,9 +63,15 @@ if (require.main === module){
   app.listen(PORT,()=> console.log(`Server running on port ${PORT}`));
 }
 
-sequelize.authenticate()
-    .then(() => console.log('Database connected!'))
-    .catch(err => console.error('DB connection error:', err));
+sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
+    }
+  }
+});
 
 (async () => {
   try {
